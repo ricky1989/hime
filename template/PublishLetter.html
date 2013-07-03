@@ -1,0 +1,238 @@
+{% extends "/template/base.html" %}
+
+{% block customJS %}
+<script type="text/javascript">
+	// post-submit callback 
+	function showResponse(responseText, statusText, xhr, j$form)  { 
+		// for normal html responses, the first argument to the success callback 
+		// is the XMLHttpRequest object's responseText property 
+ 
+ 		// if the ajaxForm method was passed an Options Object with the dataType 
+ 		// property set to 'xml' then the first argument to the success callback 
+ 		// is the XMLHttpRequest object's responseXML property 
+  
+  		// if the ajaxForm method was passed an Options Object with the dataType 
+  		// property set to 'json' then the first argument to the success callback 
+  		// is the json data object returned by the server 
+   
+   		//alert('status: ' + statusText + '\n\nresponseText: \n' + responseText + 
+   		//'\n\nThe output div should have already been updated with the responseText.'); 
+		
+		switch (responseText){
+			case -1:
+				j$().toastmessage('showErrorToast', 'Invalid data! Please double check and try again.');
+				break;
+			case 0:
+				j$().toastmessage('showSuccessToast', 'Congratulations, your request has been published.');
+				
+				// reset inputs
+				j$('div#step-1').find('input').val('');
+     			tinyMCE.activeEditor.setContent('');
+				j$('div#step-2').find('input').val('');
+				j$('.css3-columns-4').html('');
+
+				break;
+			default:
+				break;
+		}
+   	} 
+
+	// pre-submit callback 
+	function showRequest(formData, jqForm, options) { 
+    	// formData is an array; here we use $.param to convert it to a string to display it 
+        // but the form plugin does this for you automatically when it submits the data 
+        var queryString = j$.param(formData); 
+             
+ 		// jqForm is a jQuery object encapsulating the form element.  To access the 
+ 		// DOM element for the form do this: 
+ 		// var formElement = jqForm[0]; 
+  		
+  		//alert('About to submit: \n\n' + queryString); 
+   		
+   		// here we could return false to prevent the form from being submitted; 
+   		// returning anything other than false will allow the form submit to continue 
+   		//return true; 
+		
+		{% if order %}
+		
+		{% else %}
+    		// term service agreed
+    		var agree=j$('#checkbox-agree-term-service').hasClass('ariel-checkbox-checked');
+    		if (!agree){
+    			j$().toastmessage('showWarningToast', 'You need to agree to the Term of Service.');
+    			return false;
+    		}
+ 		{% endif %}
+
+	    // validation
+	    var user=j$.trim(j$('#review-client-name').html());
+	    var name=j$.trim(j$('#review-product-name').html());
+	    var description=j$.trim(j$('#review-product-description').html());
+	    var qty=j$.trim(j$('#review-qty').html());
+	    var price=j$.trim(j$('#review-price').html());
+	    var image=j$('#review-product-image').attr('src');
+
+		// required fields
+	    if (name==''){
+	    	j$().toastmessage('showErrorToast', 'Product name is required!');
+			return false;
+		}
+	    if (qty==''){
+	    	j$().toastmessage('showErrorToast', 'Product quantity is required!');
+			return false;
+		}
+				
+	    if (price==''){
+	    	j$().toastmessage('showErrorToast', 'Product price is required!');
+			return false;
+		}
+   		return true;
+   	}      
+	j$(document).ready(function(){
+		// bind 'myForm' and provide a simple callback function 
+		var options={
+			dataType: 'json',
+			beforeSubmit: showRequest,
+			success: showResponse
+		};
+		j$('#myForm').keydown(function(e) {
+			return e.which !== 13;
+		}).ajaxForm(options,function() { 
+			alert("Thank you for your comment!"); 
+		});
+		
+    	// initialize tabs
+    	j$('#tabs-min').tabs();
+		j$('#switch-to-step-2').click(function(){
+			// Activate the 2nd panel
+			j$( "#tabs-min" ).tabs( "option", "active", 1 );
+		});
+		j$('#switch-to-step-3').click(function(){
+			// Activate the 3rd panel
+			j$( "#tabs-min" ).tabs( "option", "active", 2 );
+		});
+
+    	// initialize textarea
+		tinymce.init({
+    		selector: "textarea.ss-textarea",
+    		width: "100%",
+    		height: 300,
+			plugins: [
+ 			"advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
+  			"searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
+   			"save table contextmenu directionality emoticons template paste textcolor"
+  			],
+			toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons", 
+   			style_formats: [
+   			{title: 'Bold text', inline: 'b'},
+   			{title: 'Red text', inline: 'span', styles: {color: '#ff0000'}},
+   			{title: 'Red header', block: 'h1', styles: {color: '#ff0000'}},
+   			{title: 'Example 1', inline: 'span', classes: 'example1'},
+   			{title: 'Example 2', inline: 'span', classes: 'example2'},
+   			{title: 'Table styles'},
+   			{title: 'Table row 1', selector: 'tr', classes: 'tablerow1'}
+   			]    		
+     	});		    			
+		
+	});
+</script>
+{% endblock %}
+
+{% block main %}
+<form id="myForm" action="/letter/new" method="post"> 
+<div id="tabs-min">
+	<ul>
+		<li><a href="#step-1">1. Write Your Letter</a></li>
+		<li><a href="#step-2">2. Create Personal Lock</a></li>
+		<li><a href="#step-3" id="view-review">3. Preview</a></li>
+	</ul>
+
+	<div id="step-1">
+		<p>
+			
+		</p>
+				
+		<table class="two-col-table">
+			<tr><td>
+			<label class="ss-label">To Whom</label>
+			</td></tr>
+			<tr><td>
+			<input type="email" name="receiver_email" placeholder="eg. mylove@gmail.com, sweetie@123.com"/>
+			</td></tr>
+
+			<tr><td>
+			<label class="ss-label">Letter</label>
+			</td></tr>
+			<tr><td>
+			<textarea class="ss-textarea" name="content"></textarea>
+			</td></tr>
+		</table>
+		
+		<!- navigation -->
+		<div style="text-align:right;margin-top:30px;">
+			<span class="ariel-button" id="switch-to-step-2">Next<font face="Symbol">&#187;</font></span>
+		</div>
+		
+	</div>
+	
+	<div id="step-2">
+		<h4>Secret 1</h4>
+		<table class="two-col-table sf-table">
+			<tr><td>
+				<label class="ss-label">Secret 1:</label>
+			</td><td>
+				<input type="text" />
+			</td>
+			</tr>
+
+			<tr><td>
+				<label class="ss-label">Key to Secret 1:</label>
+			</td><td>
+				<input type="text" />
+			</td>
+			</tr>
+		</table>
+
+		<h4>Secret 2</h4>
+		<table class="two-col-table sf-table">
+			<tr><td>
+				<label class="ss-label">Secret 2:</label>
+			</td><td>
+				<input type="text" />
+			</td>
+			</tr>
+
+			<tr><td>
+				<label class="ss-label">Key to Secret 2:</label>
+			</td><td>
+				<input type="text" />
+			</td>
+			</tr>
+		</table>
+
+
+		<h4>Secret 3</h4>
+		<table class="two-col-table sf-table">
+			<tr><td>
+				<label class="ss-label">Secret 3:</label>
+			</td><td>
+				<input type="text" />
+			</td>
+			</tr>
+
+			<tr><td>
+				<label class="ss-label">Key to Secret 3:</label>
+			</td><td>
+				<input type="text" />
+			</td>
+			</tr>
+		</table>
+		
+		<div style="text-align:right;margin-top:30px;">
+			<span class="ariel-button" id="switch-to-step-3">Next<font face="Symbol">&#187;</font></span>
+		</div>
+	</div>
+</div><!-- end of tabs-min -->
+</form>
+
+{% endblock %}
