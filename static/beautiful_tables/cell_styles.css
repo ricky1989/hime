@@ -1,0 +1,109 @@
+/*
+ * Colour dictionary:
+ *
+ * Table control elements:   #719ba7
+ * Header cells:             #66A9BD
+ * Body header cells:        #91c5d4
+ * Body content cells:       ##ffffff
+ * Body content cells (alt): #bcd9e1
+ * Footer header:            #b0cc7f
+ * Footer content:           #d7e1c5
+ */
+
+
+
+/*
+ * DataTables framework
+ */
+div.dataTables_wrapper {
+	background-color: #eee;
+}
+
+div.dataTables_length {
+	float: left;
+}
+
+div.dataTables_filter {
+	float: right;
+}
+
+div.dataTables_info {
+	padding: 9px 6px 6px 6px;
+	float: left;
+}
+
+div.dataTables_paginate {
+	float: right;
+}
+
+div.dataTables_length,
+div.dataTables_filter,
+div.dataTables_paginate {
+	padding: 6px;
+}
+
+/* Self clearing - http://www.webtoolkit.info/css-clearfix.html */
+.dataTables_wrapper:after {
+	content: ".";
+	display: block;
+	clear: both;
+	visibility: hidden;
+	line-height: 0;
+	height: 0;
+}
+ 
+html[xmlns] .dataTables_wrapper {
+	display: block;
+}
+ 
+* html .dataTables_wrapper {
+	height: 1%;
+}
+
+
+/*
+ * Table styles
+ */
+table.pretty {
+	width: 100%;
+	clear: both;
+}
+
+table.pretty td,
+table.pretty th {
+	padding: 5px;
+	border: 1px solid #fff;
+}
+
+/* Header cells */
+table.pretty thead th {
+	text-align: center;
+	background: #eee;
+}
+
+/* Body cells */
+table.pretty tbody th {
+	text-align: left;
+	background: #91c5d4;
+}
+	
+table.pretty tbody td {
+	text-align: center;
+	background: #66a9bd;
+}
+		
+table.pretty tbody tr.odd td { 
+	background: #66a9bd;
+}
+
+/* Footer cells */	
+table.pretty tfoot th {
+	background: #ccc;
+	text-align: left;
+}
+	
+table.pretty tfoot td {
+	background: #ccc;
+	text-align: center;
+	font-weight: bold;
+}
