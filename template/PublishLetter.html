@@ -23,13 +23,12 @@
 				j$().toastmessage('showErrorToast', 'Invalid data! Please double check and try again.');
 				break;
 			case 0:
-				j$().toastmessage('showSuccessToast', 'Congratulations, your request has been published.');
+				j$().toastmessage('showSuccessToast', 'Congratulations, your request has been saved.');
 				
 				// reset inputs
 				j$('div#step-1').find('input').val('');
      			tinyMCE.activeEditor.setContent('');
 				j$('div#step-2').find('input').val('');
-				j$('.css3-columns-4').html('');
 
 				break;
 			default:
@@ -65,30 +64,13 @@
  		{% endif %}
 
 	    // validation
-	    var user=j$.trim(j$('#review-client-name').html());
-	    var name=j$.trim(j$('#review-product-name').html());
-	    var description=j$.trim(j$('#review-product-description').html());
-	    var qty=j$.trim(j$('#review-qty').html());
-	    var price=j$.trim(j$('#review-price').html());
-	    var image=j$('#review-product-image').attr('src');
-
-		// required fields
-	    if (name==''){
-	    	j$().toastmessage('showErrorToast', 'Product name is required!');
-			return false;
-		}
-	    if (qty==''){
-	    	j$().toastmessage('showErrorToast', 'Product quantity is required!');
-			return false;
-		}
-				
-	    if (price==''){
-	    	j$().toastmessage('showErrorToast', 'Product price is required!');
-			return false;
-		}
    		return true;
    	}      
 	j$(document).ready(function(){
+		j$('.ariel-checkbox-regular').on('click',function(){
+			j$(this).toggleClass('ariel-checkbox-checked');
+		});    
+		
 		// bind 'myForm' and provide a simple callback function 
 		var options={
 			dataType: 'json',
@@ -157,7 +139,7 @@
 			<label class="ss-label">To Whom</label>
 			</td></tr>
 			<tr><td>
-			<input type="email" name="receiver_email" placeholder="eg. mylove@gmail.com, sweetie@123.com"/>
+			<input type="text" name="receiver_email" placeholder="eg. mylove@gmail.com, sweetie@123.com"/>
 			</td></tr>
 
 			<tr><td>
@@ -231,6 +213,26 @@
 		<div style="text-align:right;margin-top:30px;">
 			<span class="ariel-button" id="switch-to-step-3">Next<font face="Symbol">&#187;</font></span>
 		</div>
+	</div>
+	
+	<div id="step-3">
+		<table class="two-col-table sf-table">
+			<tr><td>
+				<label class="ss-label">When To Send</label>
+			</td><td>
+				<input type="date" name="delivery_date" />	
+			</td>
+			</tr>
+		</table>
+			
+		<div style="float:right;">
+			<span class="ariel-checkbox-regular" id="checkbox-agree-term-service">&nbsp;</span>I agree with <a href="" class="ariel-blue">Term of Service</a>
+		
+			<div class="ariel-button" style="margin-top:15px;">
+				<input style="border:none;background:transparent;" type="submit" value="Save" />
+			</div>
+		</div>
+		
 	</div>
 </div><!-- end of tabs-min -->
 </form>

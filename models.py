@@ -33,7 +33,7 @@ class Contact(ndb.Model):
 #######################################
 class MyBaseModel(ndb.Model):
 	# two time stamps
-	created_time=ndb.DateTimeProperty(auto_now_add=True)
+	created_time=ndb.DateTimeProperty(default=datetime.datetime.now())
 	last_modified_time=ndb.DateTimeProperty(auto_now=True)
 	
 	# object owner tied to a Contact
@@ -57,12 +57,23 @@ class MyBaseModel(ndb.Model):
 # Business transaction models
 #
 #######################################
+class MyLetterSecret(ndb.Model):
+	# this is the key of this design!
+	# that receiver will get an email of this question
+	# that is supposed that only the sender and receiver know about
+	# thus as a way to validate identity
+	# also, this gives receiver a chance NOT TO receive
+	# the actual letter if she chooses not to follow the link
+	question=ndb.StringProperty(required=True)
+	answer=ndb.StringProperty(required=True)
+	unlocked_date=ndb.DateTimeProperty()
+
 class MyLetter(MyBaseModel):
 	content=ndb.TextProperty(required=True)
 	
 	# time control
 	expected_delivery=ndb.DateProperty(required=True)
-	age_count_down=ndb.ComputedProperty(lambda self: (self.expected_delivery-datetime.datetime.today()).total_seconds())
+	age_count_down=ndb.ComputedProperty(lambda self: (datetime.datetime.combine(self.expected_delivery,datetime.time.min)-datetime.datetime.today()).total_seconds())
 	
 	# destination
 	# can be multiple emails
@@ -77,7 +88,7 @@ class MyLetter(MyBaseModel):
 	# user set letter secrets
 	# one letter can have multiple secrets
 	# only when all secrets were answered correctly will we serve the actual letter to receiver
-	user_secret=ndb.KeyProperty(kind='MyLetterSecret',repeated=True)
+	user_secrets=ndb.KeyProperty(kind='MyLetterSecret',repeated=True)
 	
 	# receiver read confirmation
 	# once all secret were unlocked
@@ -88,17 +99,6 @@ class MyLetter(MyBaseModel):
 	# template
 	presentation_template=ndb.StringProperty(default='default')
 
-class MyLetterSecret(ndb.Model):
-	# this is the key of this design!
-	# that receiver will get an email of this question
-	# that is supposed that only the sender and receiver know about
-	# thus as a way to validate identity
-	# also, this gives receiver a chance NOT TO receive
-	# the actual letter if she chooses not to follow the link
-	question=ndb.StringProperty(required=True)
-	answer=ndb.StringProperty(required=True)
-	unlocked_date=ndb.DateTimeProperty()
-	
 #######################################
 #
 # Auditing models

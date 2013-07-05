@@ -97,6 +97,7 @@ class PublishLetterHandler(MyBaseHandler):
 		self.response.write(template.render(self.template_values))
 	def post(self):
 		content=self.request.get('content')
+
 		try:
 			delivery_date=datetime.datetime.strptime(self.request.POST['delivery_date'],'%Y-%m-%d').date()
    		except:
@@ -108,19 +109,22 @@ class PublishLetterHandler(MyBaseHandler):
 		secrets=[]
 		for i in range(3):
 			s=MyLetterSecret(
+				parent=ndb.Key('DummyAncestor','SecretRoot'),
 				question='who',
 				answer='me')
 			secrets.append(s)
 		ndb.put_multi(secrets)
 		
 		# create letter
-		letter=MyLetter(parent=ndb.Key('Contact',self.me.key),
+		letter=MyLetter(parent=self.me.key,
+			owner=self.me.key,
 			content=content,
 			expected_delivery=delivery_date,
 			receiver_emails=emails.split(','),
-			user_secret=[s.key for s in secrets])
+			user_secrets=[s.key for s in secrets])
 		letter.put()
-				
+
+		self.response.write('0')				
 ####################################################
 #
 # User/Membership Controllers
