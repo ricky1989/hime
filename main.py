@@ -30,7 +30,9 @@ routes = [
 	# letter controllers
 	Route('/blob/serve/<resource:[^/]+>/', handler='hime.BlobServeHandler',name='blobstore-serve'),
 	Route('/letter/new',handler='hime.PublishLetterHandler',name='letter-new'),	
+	Route('/letter/manage/<owner_id:\d+>/',handler='hime.ManageLetterByOwnerHandler',name='letter-manage-byowner'),	
 	Route('/letter/secret',handler='hime.ValidateLetterSecretHandler',name='letter-secret-validate'),	
+	Route('/letter/test',handler='hime.TestLetterHandler',name='letter-test'),	
 	
 	# user controllers
 	Route('/user/contact',handler='hime.ManageUserContact',name='user-contact'),	

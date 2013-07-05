@@ -5,6 +5,7 @@ from google.appengine.api import images
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.blobstore import delete, delete_async
 from google.appengine.api import channel
+from google.appengine.api import mail
 from webapp2 import uri_for,redirect
 import os
 import urllib
@@ -96,8 +97,8 @@ class PublishLetterHandler(MyBaseHandler):
 		template = JINJA_ENVIRONMENT.get_template('/template/PublishLetter.html')
 		self.response.write(template.render(self.template_values))
 	def post(self):
-		content=self.request.get('content')
-
+		# NOTE: for whatever reason, self.request.get('content') will return a blank!
+		content=self.request.POST['content']
 		try:
 			delivery_date=datetime.datetime.strptime(self.request.POST['delivery_date'],'%Y-%m-%d').date()
    		except:
@@ -125,6 +126,25 @@ class PublishLetterHandler(MyBaseHandler):
 		letter.put()
 
 		self.response.write('0')				
+
+class ManageLetterByOwnerHandler(MyBaseHandler):
+	def get(self,owner_id):
+		self.template_values['letters']=letters=MyLetter.query(ancestor=ndb.Key('Contact',owner_id))
+	
+		template = JINJA_ENVIRONMENT.get_template('/template/ManageLetterByOwner.html')
+		self.response.write(template.render(self.template_values))
+
+class TestLetterHandler(webapp2.RequestHandler):
+	def post(self):
+		letter_id=int(self.request.get('letter_id'))
+		owner_id=self.request.get('owner_id')
+		
+		# find letter
+		letter=MyLetter.get_by_id(letter_id, parent=ndb.Key('Contact',owner_id))
+		assert letter
+		
+		send_chat(letter.key.parent().get().nickname,'ah.banana.slug',letter.content)
+		
 ####################################################
 #
 # User/Membership Controllers

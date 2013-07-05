@@ -1,4 +1,4 @@
-{% extends "/template/base.html" %}
+{% extends "/template/LetterBase.html" %}
 
 {% block customJS %}
 <script type="text/javascript">
@@ -92,6 +92,10 @@
 		j$('#switch-to-step-3').click(function(){
 			// Activate the 3rd panel
 			j$( "#tabs-min" ).tabs( "option", "active", 2 );
+
+			var content=tinyMCE.activeEditor.getContent({format : 'raw'});
+			j$('#input-letter-content').html(content);
+		
 		});
 
     	// initialize textarea
@@ -115,6 +119,13 @@
    			{title: 'Table row 1', selector: 'tr', classes: 'tablerow1'}
    			]    		
      	});		    			
+
+		// level 1 navigatino
+		j$('#nav-letter').addClass('level-1-navigation-selected');
+		
+		// level 2 navigation on
+		j$('.level-2-navigation').show();
+		j$('#nav-letter-post').addClass('level-2-navigation-selected');
 		
 	});
 </script>
@@ -146,7 +157,8 @@
 			<label class="ss-label">Letter</label>
 			</td></tr>
 			<tr><td>
-			<textarea class="ss-textarea" name="content"></textarea>
+			<textarea class="ss-textarea"></textarea>
+			<textarea style="display:none;" name="content" id="input-letter-content"></textarea>  
 			</td></tr>
 		</table>
 		
