@@ -31,6 +31,7 @@ routes = [
 	Route('/blob/serve/<resource:[^/]+>/', handler='hime.BlobServeHandler',name='blobstore-serve'),
 	Route('/letter/new',handler='hime.PublishLetterHandler',name='letter-new'),	
 	Route('/letter/manage/<owner_id:\d+>/',handler='hime.ManageLetterByOwnerHandler',name='letter-manage-byowner'),	
+	Route('/letter/verification/<owner_id:\d+>/<letter_id:\d+>/',handler='hime.VerifySecretHandler',name='letter-secret-verification'),	
 	Route('/letter/secret',handler='hime.ValidateLetterSecretHandler',name='letter-secret-validate'),	
 	Route('/letter/test',handler='hime.TestLetterHandler',name='letter-test'),	
 	
@@ -42,7 +43,12 @@ routes = [
 	Route('/_ah/channel/disconnected/',handler='hime.ChannelDisconnected',name='channel-disconnected'),
 	Route('/channel/token',handler='hime.ChannelToken',name='channel-token'),	
 	Route('/channel/route',handler='hime.ChannelRouteMessage',name='channel-route-message'),	
-
+	Route('/channel/list/onlineusers',handler='hime.ChannelListOnlineUsers',name='channel-list-onlineusers'),
+    
+	# google wallet
+	Route('/wallet/token',handler='anthem.GoogleWalletToken',name='google-wallet-token'),
+	Route('/wallet/postback',handler='anthem.GoogleWalletPostback',name='google-wallet-postback'),
+                
 	# if everything falls out
 	Route('/', handler='hime.MainPage'),  
 	

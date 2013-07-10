@@ -1,0 +1,19 @@
+{% extends "/template/base.html" %}
+
+{% block level_2_navigation %}
+	<ul>
+		<li id="nav-letter-post">
+			<a href="/letter/new" title="Compose a letter">
+				<img src="http://cdn3.iconfinder.com/data/icons/unicons-vector-icons-pack/32/zoom-in-128.png" />
+			</a>
+			<h3>Write Letter</h3>
+		</li>
+
+		<li id="nav-letter-manage">
+			<a href="/letter/manage/{{ me.key.id() }}/" title="Manage letters">
+				<img src="http://cdn4.iconfinder.com/data/icons/devine_icons/128/PNG/Folder%20and%20Places/Stack.png" />
+			</a>
+			<h3>Manage Letters</h3>
+		</li>		
+	</ul>
+{% endblock %}

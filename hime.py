@@ -109,11 +109,15 @@ class PublishLetterHandler(MyBaseHandler):
 		# create secrets
 		secrets=[]
 		for i in range(3):
-			s=MyLetterSecret(
-				parent=ndb.Key('DummyAncestor','SecretRoot'),
-				question='who',
-				answer='me')
-			secrets.append(s)
+			secret=self.request.get('secret-%d'%(i+1)).strip()
+			my_key=self.request.get('key-%d'%(i+1)).strip()
+			
+			if len(secret) and len(my_key):
+				s=MyLetterSecret(
+					parent=ndb.Key('DummyAncestor','SecretRoot'),
+					question=secret,
+					answer=my_key)
+				secrets.append(s)
 		ndb.put_multi(secrets)
 		
 		# create letter
@@ -134,6 +138,42 @@ class ManageLetterByOwnerHandler(MyBaseHandler):
 		template = JINJA_ENVIRONMENT.get_template('/template/ManageLetterByOwner.html')
 		self.response.write(template.render(self.template_values))
 
+class VerifySecretHandler(MyBaseHandler):
+	def get(self,owner_id,letter_id):
+		# find letter
+		letter=MyLetter.get_by_id(int(letter_id), parent=ndb.Key('Contact',owner_id))
+		assert letter
+	
+		self.template_values['owner_id']=owner_id
+		self.template_values['letter_id']=letter_id
+		self.template_values['secrets']=letter.user_secrets
+		template = JINJA_ENVIRONMENT.get_template('/template/ManageLetterVerification.html')
+		self.response.write(template.render(self.template_values))
+		
+	def post(self,owner_id,letter_id):
+		# find letter
+		letter=MyLetter.get_by_id(int(letter_id), parent=ndb.Key('Contact',owner_id))
+		assert letter
+		
+		keys=self.request.POST.keys()
+		
+		# first, all questions need to have a answer
+		if len(keys)!=len(letter.user_secrets):
+			self.response.write('-2')
+			return
+			
+		# then, match each answer with secret
+		for i in range(len(letter.user_secrets)):
+			user_answer=self.request.get('key-%d'%(i+1)).strip()
+			secret=letter.user_secrets[i].get().secret.strip()
+			
+			# if any not match, we stop
+			if lower(user_answer) not in secret.split(','):
+				self.response.write('-1')
+				return
+		
+		# if we get here, give user the link to read that letter
+		
 class TestLetterHandler(webapp2.RequestHandler):
 	def post(self):
 		letter_id=int(self.request.get('letter_id'))
@@ -165,6 +205,96 @@ class ManageUserContact(MyBaseHandler):
 
 ####################################################
 #
+# Google Wallet Controllers
+#
+####################################################
+class GoogleWalletToken(MyBaseHandler):
+	def post(self):
+		requesting_role=self.request.get('role')
+		jwt_token = jwt.encode(
+  			{
+  			"iss" : GOOGLE_SELLER_ID,
+  			"aud" : "Google",
+  			"typ" : "google/payments/inapp/item/v1",
+  			"exp" : int(time.time() + 3600),
+  			"iat" : int(time.time()),
+  			"request" :{
+				"name" : "%s Membership for %s" % (requesting_role,self.me.nickname),
+  				"description" : "%s membership subscriptions" % requesting_role,
+				"price" : MONTHLY_MEMBERSHIP_FEE[requesting_role],
+  				"currencyCode" : "USD",
+				"sellerData" : "%s" % self.me.key.id(),
+				"initialPayment" : {
+  					"price" : MONTHLY_MEMBERSHIP_FEE[requesting_role],
+					"currencyCode" : "USD",
+  					"paymentType" : "prorated",
+  				},
+  				"recurrence" : {
+					"price" : MONTHLY_MEMBERSHIP_FEE[requesting_role],
+  					"currencyCode" : "USD",
+					"startTime" : int(time.time() + 2600000),
+  					"frequency" : "monthly",
+					"numRecurrences" : "12",
+				}				
+			}
+  			},
+			GOOGLE_SELLER_SECRET)
+		self.response.write(jwt_token)
+		
+class GoogleWalletPostback(webapp2.RequestHandler):
+	def post(self):
+		encoded_jwt = self.request.get('jwt')
+		if encoded_jwt is not None:
+  			result = jwt.decode(str(encoded_jwt), GOOGLE_SELLER_SECRET)
+  		
+		# validate the payment request and respond back to Google
+  		if result['iss'] == 'Google' and result['aud'] == GOOGLE_SELLER_ID:
+  			if ('response' in result and
+  				'orderId' in result['response'] and
+  				'request' in result):
+				
+				order_id = result['response']['orderId']
+  				request_info = result['request']
+				contact_id=result['request']['sellerData']
+
+				# look up Contact
+				contact=Contact.get_by_id(contact_id)
+				assert contact
+				
+				# updat Contact memberships
+				role=result['request']['name']
+				role=role[:3] # strip off " Membership"
+				
+				# no status code, normal transaction
+				# create a separate order record
+				google_order=GoogleWalletSubscriptionOrder(parent=ndb.Key('DummyAncestor','WalletRoot'),
+					role=role, 
+					order_id=order_id,
+					order_detail=json.dumps(result),
+					contact_key=contact.key)
+				google_order.put()			
+
+				# update Contact
+				contact.signup_membership(google_order)
+					
+  				# respond back to complete payment
+  				self.response.out.write(order_id)
+
+			
+			# check if this was a subscription cancellation postback
+			if ('response' in result and
+				'orderId' in result['response'] and
+				'statusCode' in result['response']):
+  				
+  				order_id=result['response']['orderId']
+  				status_code =  result['response']['statusCode']
+				if status_code == 'SUBSCRIPTION_CANCELED':
+					# there is status code
+					# cancellation
+					GoogleWalletSubscriptionOrder.cancel_membership_by_wallet(order_id)
+
+####################################################
+#
 # Channel controllers
 #
 ####################################################
@@ -179,12 +309,31 @@ def send_chat(sender,receiver,message):
 				channel.send_message(c.client_id,json.dumps({'sender':sender,'message':message}))
 			return queries.count()
 		else:
+			# no live channel to receiver, we send an email alert
+			if sender.lower in ['system','admin','ah.banana.slug']:
+				from_email='ah.banana.slug@gmail.com'
+			else:
+				sender=Contact.query(Contact.nickname==sender).get()
+				if sender: from_email=sender.email
+				else: from_email=None
+			
+			if receiver.lower() in ['system','admin', 'ah.banana.slug']:
+				to_email='ah.banana.slug@gmail.com'
+			else:
+				receiver=Contact.query(Contact.nickname==receiver).get()
+				if receiver: to_email=receiver.email
+				else: to_email=None
+			
+			# if there is a valid receiver email
+			if from_email and to_email:
+				# user may put in a typo, so we use this IF instead of assert
+				mail.send_mail(sender=from_email,
+					to=to_email,
+					subject="You have got mail",
+					body=message
+				)
 			return 0
 			
-# free app max list length will be 100
-# so iteration shouldn't be too bad
-# client_id: {'contact_id':user, 'contact_name': nickname, 'token':token, 'in_use':False, 'created_time':created_time)
-chat_channel_pool={}
 
 class ChannelConnected(webapp2.RequestHandler):
 	def post(self):
@@ -208,7 +357,6 @@ class ChannelConnected(webapp2.RequestHandler):
 		saved_channel.in_use=True
 		saved_channel.put()	
 		
-		logging.info('Connected: '+client_id)
 						
 class ChannelDisconnected(webapp2.RequestHandler):
 	def post(self):
@@ -233,7 +381,6 @@ class ChannelDisconnected(webapp2.RequestHandler):
 		saved_channel.in_use=False
 		saved_channel.put()	
 		
-		logging.info('Disconnected: '+client_id)
 		
 class ChannelToken(webapp2.RequestHandler):
 	# This is the token pool management controller.
@@ -278,7 +425,6 @@ class ChannelToken(webapp2.RequestHandler):
 				c.put()
 				 
 				# tell client token
-				logging.info('Issuing new token: '+random_token)
 				self.response.write(random_token)
 			
 			else: # user has 2 open channel already, deny new request
@@ -297,3 +443,10 @@ class ChannelRouteMessage(webapp2.RequestHandler):
 		if send_chat(sender,receiver,message)==0:
 			self.response.write('-1')
 
+class ChannelListOnlineUsers(webapp2.RequestHandler):
+	def post(self):
+		queries=ChatChannel.query(ChatChannel.in_use==True)
+		online_users=list(set([c.contact_name for c in queries]))
+		if len(online_users):
+			self.response.write(json.dumps(online_users))
+		else: self.response.write('-1')					

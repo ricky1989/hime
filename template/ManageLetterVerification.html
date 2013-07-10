@@ -1,0 +1,22 @@
+{% extends "/template/LetterBase.html" %}
+
+{% block main %}
+<h1 class="ariel-blue">Answer Me</h1>
+
+<p class="ariel-blue ariel-p">
+STOP! Before you can read the letter, answer me.
+</p>
+
+<form id="myForm" action="/letter/verification/{{ owner_id }}/{{ letter_id}}/" method="post">
+<table class="two-col-table sf-table">
+{% for s in secrets %}
+	<tr><td
+		<label class="ss-label">{{ s.get().question }}</label>
+	</td><td>
+		<input type="text" value="" name="key-{{ loop.index }}"/>
+	</td></tr>
+{% endfor %}
+</table>
+	<input type="submit" value="Unlock The Letter"/>
+</form>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "/template/LetterBase.html" %}
+
+
+{% block customJS %}
+<script type="text/javascript">
+	j$(document).ready(function(){
+		j$(document).on('click','button[item="letter-test"]',function(event){
+			var id=j$(this).attr('itemId');
+
+			j$.post(
+				'/letter/test',
+				{'letter_id':id, 'owner_id':'{{ me.key.id() }}'},
+				function(result){
+					j$().toastmessage('showSuccessToast','Letter sent');
+				}
+			);
+		});
+		
+		// level 1 navigation
+		j$('#nav-letter').addClass('level-1-navigation-selected');
+		
+		// level 2 navigation on
+		j$('.level-2-navigation').show();
+		j$('#nav-letter-manage').addClass('level-2-navigation-selected');
+		
+	});
+</script>
+{% endblock %}
+
+{% block main %}
+	<h2>My Letters</h2>
+	<p>
+	
+	</p>
+	
+	<table class="ariel-table">
+		{% for l in letters %}
+		<tr>
+			<td>
+				{{ l.key.id() }}
+			</td><td>
+				{{ l.content }}
+			</td><td>
+				<button itemId="{{ l.key.id() }}" item="letter-test">Test Delivery</button>
+			</td><td>
+				<a href="/letter/verification/{{me.key.id()}}/{{l.key.id()}}/">Secret</a>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+{% endblock %}

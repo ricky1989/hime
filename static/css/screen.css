@@ -71,7 +71,7 @@ table#site-layout td{
 
 .level-1-navigation{
 	opacity:80%;
-	width:100px;
+	width:70%;
 	background-color:#292421;
 	color:white;
 }
@@ -2017,6 +2017,7 @@ div.chart-filters input {
 	padding: 10px;
 	z-index:999;	
 }
+
 #channel-collapse-switch{
 	width:30px;
 	height:30px;
