@@ -138,17 +138,18 @@ class ManageLetterByOwnerHandler(MyBaseHandler):
 		template = JINJA_ENVIRONMENT.get_template('/template/ManageLetterByOwner.html')
 		self.response.write(template.render(self.template_values))
 
-class VerifySecretHandler(MyBaseHandler):
+class VerifySecretHandler(webapp2.RequestHandler):
 	def get(self,owner_id,letter_id):
 		# find letter
 		letter=MyLetter.get_by_id(int(letter_id), parent=ndb.Key('Contact',owner_id))
 		assert letter
 	
-		self.template_values['owner_id']=owner_id
-		self.template_values['letter_id']=letter_id
-		self.template_values['secrets']=letter.user_secrets
+		template_values={}
+		template_values['owner_id']=owner_id
+		template_values['letter_id']=letter_id
+		template_values['secrets']=letter.user_secrets
 		template = JINJA_ENVIRONMENT.get_template('/template/ManageLetterVerification.html')
-		self.response.write(template.render(self.template_values))
+		self.response.write(template.render(template_values))
 		
 	def post(self,owner_id,letter_id):
 		# find letter
@@ -163,17 +164,38 @@ class VerifySecretHandler(MyBaseHandler):
 			return
 			
 		# then, match each answer with secret
+		batch=[]
 		for i in range(len(letter.user_secrets)):
+			saved_secret=letter.user_secrets[i].get()
 			user_answer=self.request.get('key-%d'%(i+1)).strip()
-			secret=letter.user_secrets[i].get().secret.strip()
+			secret=saved_secret.answer.strip()
 			
 			# if any not match, we stop
-			if lower(user_answer) not in secret.split(','):
+			if user_answer.lower() not in secret.split(','):
 				self.response.write('-1')
 				return
+			else:
+				logging.info('matched')
+				saved_secret.unlocked_date=datetime.datetime.now()
+				batch.append(saved_secret)
+		
+		# update secret if some were unlocked
+		ndb.put_multi(batch)
 		
 		# if we get here, give user the link to read that letter
+		self.response.write(json.dumps({'url':'/letter/view/%s' % letter.random_secret}))
 		
+class ViewLetterHandler(webapp2.RequestHandler):
+	def get(self, secret):
+		letter=MyLetter.query(MyLetter.random_secret==secret).get()
+		assert letter
+		
+		template_values={}
+		template_values['letter']=letter
+		template = JINJA_ENVIRONMENT.get_template('/template/ViewLetter.html')
+		self.response.write(template.render(template_values))
+		
+			
 class TestLetterHandler(webapp2.RequestHandler):
 	def post(self):
 		letter_id=int(self.request.get('letter_id'))

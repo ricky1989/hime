@@ -14,7 +14,10 @@ handlers:
 - url: /_ah/channel/disconnected/
   script: main.app
   
-- url: /
+- url: /letter/verification/.*
+  script: main.app
+
+- url: /letter/view/.*
   script: main.app
 
 - url: /.*

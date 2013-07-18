@@ -1,0 +1,11 @@
+{% extends "/template/PublicBase.html" %}
+
+{% block main %}
+This letter was written on {{letter.created_time }} by {{letter.owner.get().nickname }}:
+
+
+<div>
+	{{ letter.content }}
+</div>
+
+{% endblock %}

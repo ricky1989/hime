@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Banana Slug Post Office</title>
+	<meta name="author" content="Ah Banana Slug">
+
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="/static/css/reset-min.css">
+	<LINK REL=StyleShyeet HREF="/static/css/navigation.css" TYPE="text/css" MEDIA=screen>
+	<LINK REL=StyleSheet HREF="/static/css/screen.css" TYPE="text/css" MEDIA=screen>
+</head>
+
+{% autoescape true %}
+<body>
+
+
+{% block header%}
+
+<div class="header">
+	<table class="header-layout">
+	<tr><td>
+	<a href="/">
+		<h4>Banana Slug Post Office</h4>
+	</a>
+	</td><td>
+	<span class="level-1-navigation">
+		<ul>		
+		</ul>
+		</span>
+	</td><td>
+		<div class="status-tray">
+		</div>
+	</td><td style="text-align:right;">
+	</td></tr>
+	</table>
+</div>
+{% endblock %}
+
+<div class="wrapper">
+<table id="site-layout">
+<tr>
+	<td class="level-2-navigation" style="display:none;">
+		{% block level_2_navigation %}
+		
+		{% endblock %}
+	</td>
+	<td>
+		<div class="main">
+		{% block main %}{% endblock %}
+		</div>
+	</td>
+</tr>
+
+</table>
+
+<div class="push"></div>
+</div>
+
+{% block footer %}
+<div class="footer">
+<div style="margin-right:auto;margin-left:auto;width:67%;">
+<ul>
+<li>&copy; 2013 All Rights Reservered by Banana Slug Post Office<br />
+</li>
+
+<li>
+	<a href="mailto:anthem.marketplace@gmail.com">Contact Us @ah.banana.slug</a>
+</li>
+<li>
+	<a href="">Term of Service</a>
+
+</li>
+
+</ul>
+</div>
+</div>
+{% endblock %}
+
+ 
+
+	<LINK REL=StyleSheet HREF="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/smoothness/jquery-ui.min.css" TYPE="text/css" MEDIA=screen>
+
+	<!-- JS to turn a form into AJAX call -->
+	<script src="/static/formjs/jquery.form.js"></script> 
+
+	<!-- toast -->
+	<script src="/static/toast/jquery.toastmessage.js" type="text/javascript"></script> 
+	<LINK REL=StyleSheet HREF="/static/toast/css/jquery.toastmessage.css" TYPE="text/css" MEDIA=screen>
+	
+	<!-- jQuery dataTable -->
+	<script type="text/javascript" src="/static/DataTables-1.9.4/media/js/jquery.dataTables.min.js"></script>
+	<LINK REL=StyleSheet HREF="/static/DataTables-1.9.4/media/css/jquery.dataTables.css" TYPE="text/css" MEDIA=screen>
+	<link rel="stylesheet" type="text/css" href="/static/beautiful_tables/cell_styles.css">
+		
+	<!-- carousel -->
+	<script type="text/javascript" src="/static/carouFredSel-6.2.0/jquery.carouFredSel-6.2.0.js"></script>
+
+	<!-- easing -->
+	<!-- http://gsgd.co.uk/sandbox/jquery/easing/ -->
+	<script type="text/javascript" src="/static/easing/jquery.easing.min.js"></script>
+
+	<!-- tinyMCE -->
+	<script type="text/javascript" src="/static/tinymce/js/tinymce/jquery.tinymce.min.js"></script>	
+	<script type="text/javascript" src="/static/tinymce/js/tinymce/tinymce.min.js"></script>	
+		
+	<!-- highcharts -->
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	
+	<!-- google wallet -->
+	<script src="https://sandbox.google.com/checkout/inapp/lib/buy.js"></script>	
+	
+	<script type="text/javascript">
+		// some global initialization
+		var j$=jQuery.noConflict();
+	</script>	
+	{% block customJS %}{% endblock %}
+</body>
+{% endautoescape %}
+
+</html>
